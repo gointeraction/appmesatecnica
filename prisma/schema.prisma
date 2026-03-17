@@ -1,0 +1,520 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ====================
+// ENUMS
+// ====================
+
+enum RolUsuario {
+  ADMIN
+  SECRETARIA_TECNICA
+  ASESOR
+  EMPRESA_AFILIADA
+}
+
+enum TipoConsulta {
+  LEGAL
+  FISCAL
+  TECNICA
+  MIXTA
+}
+
+enum PrioridadConsulta {
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum EstadoConsulta {
+  RECIBIDA
+  CLASIFICADA
+  ASIGNADA
+  EN_PROCESO
+  DICTAMEN
+  CERRADA
+}
+
+enum SlaTipo {
+  ESTANDAR  // 15 días hábiles
+  COMPLEJO  // 30 días hábiles
+}
+
+enum EstadoCandidato {
+  PENDIENTE
+  EN_REVISION
+  ENTREVISTA
+  EVALUACION
+  APROBADO
+  RECHAZADO
+  INCORPORADO
+}
+
+enum TipoEvento {
+  REUNION
+  AUDIENCIA
+  CAPACITACION
+  EVENTO_PUBLICO
+  OTRO
+}
+
+enum EstadoNotificacion {
+  NO_LEIDA
+  LEIDA
+  ARCHIVADA
+}
+
+enum TipoPlantilla {
+  DICTAMEN_LEGAL
+  DICTAMEN_FISCAL
+  DICTAMEN_TECNICO
+  OFICIO
+  COMUNICADO
+}
+
+// ====================
+// MODELOS PRINCIPALES
+// ====================
+
+model User {
+  id                    String                @id @default(cuid())
+  email                 String                @unique
+  password              String
+  nombre                String
+  apellido              String?
+  telefono              String?
+  cargo                 String?
+  empresa               String?
+  rol                   RolUsuario            @default(EMPRESA_AFILIADA)
+  activo                Boolean               @default(true)
+  imagenUrl             String?
+  ultimoAcceso          DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  asesor                Asesor?
+  consultasEmpresa      Consulta[]            @relation("ConsultasEmpresa")
+  mensajes              Mensaje[]
+  notificaciones        Notificacion[]
+  eventosCreados        EventoAgenda[]        @relation("EventosCreados")
+  eventosParticipante   EventoParticipante[]  @relation("EventosParticipantes")
+  articulosKB           ArticuloKB[]          @relation("ArticulosAutor")
+  comunicados           Comunicado[]          @relation("ComunicadosAutor")
+  encuestas             EncuestaSatisfaccion[]
+  candidatoAsesor       CandidatoAsesor?
+
+  @@index([email])
+  @@index([rol])
+}
+
+model Asesor {
+  id                    String                @id @default(cuid())
+  userId                String                @unique
+  profesion             String
+  especialidad          String
+  biografia             String?
+  comiteId              String?
+  activo                Boolean               @default(true)
+  fechaIncorporacion    DateTime              @default(now())
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comite                Comite?               @relation("AsesorComite", fields: [comiteId], references: [id])
+  comitesLiderados      Comite[]              @relation("ComiteLider")
+  consultasPrincipal    Consulta[]            @relation("ConsultasAsesorPrincipal")
+  consultasApoyo        ConsultaAsesorApoyo[]
+  dictamenes            Dictamen[]
+  mensajes              Mensaje[]
+
+  @@index([comiteId])
+  @@index([activo])
+}
+
+model Comite {
+  id                    String                @id @default(cuid())
+  nombre                String
+  descripcion           String?
+  color                 String                @default("#3B82F6")
+  icono                 String?
+  activo                Boolean               @default(true)
+  liderId               String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  lider                 Asesor?               @relation("ComiteLider", fields: [liderId], references: [id])
+  asesores              Asesor[]              @relation("AsesorComite")
+  consultas             ConsultaComite[]
+
+  @@index([activo])
+}
+
+model Consulta {
+  id                    String                @id @default(cuid())
+  codigo                String                @unique
+  titulo                String
+  descripcion           String
+  tipo                  TipoConsulta
+  prioridad             PrioridadConsulta     @default(MEDIA)
+  estado                EstadoConsulta        @default(RECIBIDA)
+  slaTipo               SlaTipo               @default(ESTANDAR)
+  slaFecha              DateTime?
+  fechaCierre           DateTime?
+  empresaId             String
+  asesorPrincipalId     String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  empresa               User                  @relation("ConsultasEmpresa", fields: [empresaId], references: [id])
+  asesorPrincipal       Asesor?               @relation("ConsultasAsesorPrincipal", fields: [asesorPrincipalId], references: [id])
+  comites               ConsultaComite[]
+  asesoresApoyo         ConsultaAsesorApoyo[]
+  mensajes              Mensaje[]
+  dictamenes            Dictamen[]
+  documentos            Documento[]
+  encuestas             EncuestaSatisfaccion[]
+
+  @@index([codigo])
+  @@index([estado])
+  @@index([tipo])
+  @@index([prioridad])
+  @@index([empresaId])
+  @@index([asesorPrincipalId])
+}
+
+model ConsultaComite {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  comiteId              String
+  estado                EstadoConsulta        @default(CLASIFICADA)
+  observaciones         String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  comite                Comite                @relation(fields: [comiteId], references: [id])
+
+  @@unique([consultaId, comiteId])
+  @@index([consultaId])
+  @@index([comiteId])
+}
+
+model ConsultaAsesorApoyo {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  asesorId              String
+  rol                   String?               // Rol específico en la consulta
+  createdAt             DateTime              @default(now())
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  asesor                Asesor                @relation(fields: [asesorId], references: [id])
+
+  @@unique([consultaId, asesorId])
+  @@index([consultaId])
+  @@index([asesorId])
+}
+
+model Mensaje {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  userId                String
+  contenido             String
+  esPrivado             Boolean               @default(false)
+  esRespuestaOficial    Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  user                  User                  @relation(fields: [userId], references: [id])
+  asesor                Asesor?               @relation(fields: [userId], references: [id])
+
+  @@index([consultaId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Dictamen {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  asesorId              String
+  plantillaId           String?
+  titulo                String
+  contenido             String
+  conclusion            String?
+  recomendaciones       String?
+  fundamentos           String?
+  version               Int                   @default(1)
+  esFinal               Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  asesor                Asesor                @relation(fields: [asesorId], references: [id])
+  plantilla             PlantillaDictamen?   @relation(fields: [plantillaId], references: [id])
+
+  @@index([consultaId])
+  @@index([asesorId])
+}
+
+model Documento {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  nombre                String
+  nombreOriginal        String
+  tipo                  String                // MIME type
+  tamano                Int                   // bytes
+  ruta                  String                // Path in storage
+  descripcion           String?
+  esPublico             Boolean               @default(false)
+  creadoPor             String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+
+  @@index([consultaId])
+}
+
+model CandidatoAsesor {
+  id                    String                @id @default(cuid())
+  userId                String                @unique
+  nombre                String
+  apellido              String
+  email                 String
+  telefono              String
+  profesion             String
+  especialidad          String
+  experiencia           String?
+  biografia             String?
+  cvUrl                 String?
+  cartasRecomendacion   String?               // JSON array de URLs
+  estado                EstadoCandidato       @default(PENDIENTE)
+  fechaPostulacion      DateTime              @default(now())
+  fechaRevision         DateTime?
+  revisadoPor           String?               // User ID
+  observaciones         String?
+  entrevistaFecha       DateTime?
+  evaluacionNotas       String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  user                  User?                 @relation(fields: [userId], references: [id])
+
+  @@index([estado])
+  @@index([email])
+}
+
+model EventoAgenda {
+  id                    String                @id @default(cuid())
+  titulo                String
+  descripcion           String?
+  tipo                  TipoEvento            @default(REUNION)
+  fechaInicio           DateTime
+  fechaFin              DateTime?
+  ubicacion             String?
+  esVirtual             Boolean               @default(false)
+  enlaceVirtual         String?
+  recordatorio          Boolean               @default(true)
+  recordatorioEnviado   Boolean               @default(false)
+  creadoPorId           String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  creadoPor             User                  @relation("EventosCreados", fields: [creadoPorId], references: [id])
+  participantes         EventoParticipante[]
+
+  @@index([fechaInicio])
+  @@index([tipo])
+}
+
+model EventoParticipante {
+  id                    String                @id @default(cuid())
+  eventoId              String
+  userId                String
+  asistio               Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+
+  // Relaciones
+  evento                EventoAgenda          @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  user                  User                  @relation("EventosParticipantes", fields: [userId], references: [id])
+
+  @@unique([eventoId, userId])
+  @@index([eventoId])
+  @@index([userId])
+}
+
+model ArticuloKB {
+  id                    String                @id @default(cuid())
+  titulo                String
+  contenido             String
+  resumen               String?
+  categoria             String?
+  etiquetas             String?               // JSON array
+  esDestacado           Boolean               @default(false)
+  publicado             Boolean               @default(false)
+  vistas                Int                   @default(0)
+  autorId               String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  autor                 User                  @relation("ArticulosAutor", fields: [autorId], references: [id])
+
+  @@index([categoria])
+  @@index([publicado])
+  @@index([esDestacado])
+}
+
+model Notificacion {
+  id                    String                @id @default(cuid())
+  userId                String
+  titulo                String
+  mensaje               String
+  tipo                  String?               // INFO, WARNING, SUCCESS, ERROR
+  enlace                String?               // URL para navegar
+  estado                EstadoNotificacion    @default(NO_LEIDA)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([estado])
+  @@index([createdAt])
+}
+
+model Configuracion {
+  id                    String                @id @default(cuid())
+  clave                 String                @unique
+  valor                 String
+  descripcion           String?
+  tipo                  String?               // STRING, NUMBER, BOOLEAN, JSON
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([clave])
+}
+
+model PlantillaDictamen {
+  id                    String                @id @default(cuid())
+  nombre                String
+  tipo                  TipoPlantilla
+  contenido             String
+  variables             String?               // JSON array de variables disponibles
+  activa                Boolean               @default(true)
+  version               Int                   @default(1)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  dictamenes            Dictamen[]
+
+  @@index([tipo])
+  @@index([activa])
+}
+
+model EncuestaSatisfaccion {
+  id                    String                @id @default(cuid())
+  consultaId            String
+  userId                String
+  calificacion          Int                   // 1-5
+  tiempoRespuesta       Int?                  // 1-5
+  calidadRespuesta      Int?                  // 1-5
+  comunicacion          Int?                  // 1-5
+  comentarios           String?
+  recomendaria          Boolean?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  consulta              Consulta              @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+  user                  User                  @relation(fields: [userId], references: [id])
+
+  @@unique([consultaId, userId])
+  @@index([consultaId])
+  @@index([userId])
+}
+
+model Capacitacion {
+  id                    String                @id @default(cuid())
+  titulo                String
+  descripcion           String?
+  contenido             String?
+  categoria             String?
+  nivel                 String?               // Básico, Intermedio, Avanzado
+  duracion              Int?                  // minutos
+  instructor            String?
+  enlaceVideo           String?
+  materiales            String?               // JSON array de URLs
+  activo                Boolean               @default(true)
+  inscritos             Int                   @default(0)
+  completados           Int                   @default(0)
+  fechaProgramada       DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([categoria])
+  @@index([activo])
+}
+
+model Normativa {
+  id                    String                @id @default(cuid())
+  titulo                String
+  descripcion           String?
+  tipo                  String?               // Ley, Reglamento, Providencia, etc.
+  numero                String?
+  fechaPublicacion      DateTime?
+  fechaVigencia         DateTime?
+  organismo             String?
+  archivoUrl            String?
+  etiquetas             String?               // JSON array
+  activo                Boolean               @default(true)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([tipo])
+  @@index([activo])
+  @@index([fechaPublicacion])
+}
+
+model Comunicado {
+  id                    String                @id @default(cuid())
+  titulo                String
+  contenido             String
+  resumen               String?
+  esUrgente             Boolean               @default(false)
+  publicado             Boolean               @default(false)
+  fechaPublicacion      DateTime?
+  autorId               String
+  destinatarios         String?               // JSON array de roles o usuarios específicos
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relaciones
+  autor                 User                  @relation("ComunicadosAutor", fields: [autorId], references: [id])
+
+  @@index([publicado])
+  @@index([esUrgente])
+  @@index([fechaPublicacion])
+}
