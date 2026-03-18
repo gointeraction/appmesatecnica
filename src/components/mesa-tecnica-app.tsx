@@ -13,7 +13,8 @@ import {
   Award, Target, Zap, Globe, Lock, Mail, Phone, MapPin, Briefcase as BriefcaseIcon,
   GraduationCap, FileCheck, AlertCircle, Info, Star, ThumbsUp, ThumbsDown,
   ExternalLink, Copy, RefreshCw, Archive, Play, Video, File, FolderOpen,
-  Newspaper, Megaphone, HelpCircle, Layers, Hash, ArrowRight, UserCheck
+  Newspaper, Megaphone, HelpCircle, Layers, Hash, ArrowRight, UserCheck,
+  GripVertical, List, LayoutGrid
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { Button } from '@/components/ui/button'
@@ -34,10 +35,14 @@ import { Switch } from '@/components/ui/switch'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from 'sonner'
 import { format, formatDistanceToNow, addDays, differenceInHours, differenceInBusinessDays, isPast, isToday, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
+import { Criptobot } from './criptobot'
+import { ForoModule } from './foro-module'
+
 import type {
   User, Asesor, Comite, Consulta, Mensaje, Dictamen, Documento,
   CandidatoAsesor, EventoAgenda, ArticuloKB, Notificacion, Configuracion,
@@ -547,6 +552,7 @@ function ConsultasModule() {
   const [comites, setComites] = useState<Comite[]>([])
   const { user } = useAuthStore()
   const [isBrowser, setIsBrowser] = useState(false)
+  const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN')
 
   useEffect(() => {
     setIsBrowser(true)
@@ -692,98 +698,185 @@ function ConsultasModule() {
               ))}
             </SelectContent>
           </Select>
+          <div className="flex border rounded-lg p-1 bg-muted/30">
+            <Button 
+              variant={viewMode === 'KANBAN' ? 'secondary' : 'ghost'} 
+              size="sm" 
+              className="h-8 px-2"
+              onClick={() => setViewMode('KANBAN')}
+            >
+              <LayoutGrid className="w-4 h-4 mr-1" /> Kanban
+            </Button>
+            <Button 
+              variant={viewMode === 'LIST' ? 'secondary' : 'ghost'} 
+              size="sm" 
+              className="h-8 px-2"
+              onClick={() => setViewMode('LIST')}
+            >
+              <List className="w-4 h-4 mr-1" /> Lista
+            </Button>
+          </div>
         </div>
       </div>
 
       {isBrowser ? (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {columns.map(column => (
-              <Droppable key={column} droppableId={column}>
-                {(provided, snapshot) => (
-                  <div 
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="flex-shrink-0 w-72 flex flex-col h-[calc(100vh-270px)]"
-                  >
-                    <div className={`rounded-t-lg p-2 text-white text-sm font-medium ${getEstadoColor(column)}`}>
-                      <div className="flex items-center justify-between">
-                        <span>{column.replace('_', ' ')}</span>
-                        <Badge variant="secondary" className="bg-white/20">
-                          {getConsultasByEstado(column).length}
-                        </Badge>
+        viewMode === 'KANBAN' ? (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {columns.map(column => (
+                <Droppable key={column} droppableId={column}>
+                  {(provided, snapshot) => (
+                    <div 
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="flex-shrink-0 w-72 flex flex-col h-[calc(100vh-270px)]"
+                    >
+                      <div className={`rounded-t-lg p-2 text-white text-sm font-medium ${getEstadoColor(column)}`}>
+                        <div className="flex items-center justify-between">
+                          <span>{column.replace('_', ' ')}</span>
+                          <Badge variant="secondary" className="bg-white/20">
+                            {getConsultasByEstado(column).length}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <ScrollArea className={`flex-1 rounded-b-lg border border-t-0 ${snapshot.isDraggingOver ? 'bg-muted/50' : 'bg-muted/30'}`}>
-                      <div className="p-2 space-y-2 min-h-[100px] h-full">
-                        {getConsultasByEstado(column).map((consulta, index) => {
-                          const slaStatus = getSlaStatus(consulta.slaFecha)
-                          return (
-                            <Draggable key={consulta.id} draggableId={consulta.id} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  style={{...provided.draggableProps.style, paddingBottom: '0.01px'}}
-                                >
-                                  <Card
-                                    className={`cursor-pointer hover:shadow-md transition-shadow ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary scale-105 z-50 relative' : ''}`}
-                                    onClick={() => setSelectedConsulta(consulta)}
+                      <ScrollArea className={`flex-1 rounded-b-lg border border-t-0 ${snapshot.isDraggingOver ? 'bg-muted/50' : 'bg-muted/30'}`}>
+                        <div className="p-2 space-y-2 min-h-[100px] h-full">
+                          {getConsultasByEstado(column).map((consulta, index) => {
+                            const slaStatus = getSlaStatus(consulta.slaFecha)
+                            return (
+                              <Draggable key={consulta.id} draggableId={consulta.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    style={{...provided.draggableProps.style, paddingBottom: '0.01px'}}
                                   >
-                                    <CardContent className="p-3">
-                                      <div className="flex items-start justify-between gap-2">
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs text-muted-foreground font-mono">{consulta.codigo}</p>
-                                          <p className="font-medium text-sm truncate">{consulta.titulo}</p>
-                                        </div>
-                                        <Badge className={`${getPrioridadColor(consulta.prioridad)} text-white text-xs`}>
-                                          {consulta.prioridad}
-                                        </Badge>
+                                    <Card
+                                      className={`relative group hover:shadow-md transition-shadow ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary scale-105 z-50' : ''}`}
+                                    >
+                                      <div 
+                                        {...provided.dragHandleProps}
+                                        className="absolute right-2 top-2 p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Arrastrar para cambiar estado"
+                                      >
+                                        <GripVertical className="w-4 h-4" />
                                       </div>
-                                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Building className="w-3 h-3" />
-                                        <span className="truncate">{consulta.empresa?.nombre || 'Sin empresa'}</span>
-                                      </div>
-                                      <div className="mt-2 flex items-center justify-between">
-                                        <div className="flex items-center gap-1">
-                                          <Clock className={`w-3 h-3 ${slaStatus.color}`} />
-                                          <span className={`text-xs ${slaStatus.color}`}>{slaStatus.label}</span>
+                                      <CardContent 
+                                        className="p-3 cursor-pointer"
+                                        onClick={() => setSelectedConsulta(consulta)}
+                                      >
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-muted-foreground font-mono">{consulta.codigo}</p>
+                                            <p className="font-medium text-sm truncate">{consulta.titulo}</p>
+                                          </div>
+                                          <Badge className={`${getPrioridadColor(consulta.prioridad)} text-white text-xs`}>
+                                            {consulta.prioridad}
+                                          </Badge>
                                         </div>
-                                        <span className="text-xs text-muted-foreground">
-                                          {format(new Date(consulta.createdAt), 'dd/MM', { locale: es })}
-                                        </span>
-                                      </div>
-                                      {consulta.comites && consulta.comites.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap gap-1">
-                                          {consulta.comites.map(cc => (
-                                            <Badge key={cc.id} variant="outline" className="text-xs">
-                                              {cc.comite?.nombre?.substring(0, 10)}...
-                                            </Badge>
-                                          ))}
+                                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                                          <Building className="w-3 h-3" />
+                                          <span className="truncate">{consulta.empresa?.nombre || 'Sin empresa'}</span>
                                         </div>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                </div>
-                              )}
-                            </Draggable>
-                          )
-                        })}
-                        {provided.placeholder}
-                        {getConsultasByEstado(column).length === 0 && !snapshot.isDraggingOver && (
-                          <div className="text-center text-muted-foreground text-sm py-8">
-                            Sin consultas
+                                        <div className="mt-2 flex items-center justify-between">
+                                          <div className="flex items-center gap-1">
+                                            <Clock className={`w-3 h-3 ${slaStatus.color}`} />
+                                            <span className={`text-xs ${slaStatus.color}`}>{slaStatus.label}</span>
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">
+                                            {format(new Date(consulta.createdAt), 'dd/MM', { locale: es })}
+                                          </span>
+                                        </div>
+                                        {consulta.comites && consulta.comites.length > 0 && (
+                                          <div className="mt-2 flex flex-wrap gap-1">
+                                            {consulta.comites.map(cc => (
+                                              <Badge key={cc.id} variant="outline" className="text-xs">
+                                                {cc.comite?.nombre?.substring(0, 10)}...
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+                                )}
+                              </Draggable>
+                            )
+                          })}
+                          {provided.placeholder}
+                          {getConsultasByEstado(column).length === 0 && !snapshot.isDraggingOver && (
+                            <div className="text-center text-muted-foreground text-sm py-8">
+                              Sin consultas
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+          </DragDropContext>
+        ) : (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Empresa</TableHead>
+                  <TableHead>Prioridad</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>SLA</TableHead>
+                  <TableHead className="text-right">Fecha</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {consultas.length > 0 ? (
+                  consultas.map((consulta) => {
+                    const slaStatus = getSlaStatus(consulta.slaFecha)
+                    return (
+                      <TableRow 
+                        key={consulta.id} 
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => setSelectedConsulta(consulta)}
+                      >
+                        <TableCell className="font-mono text-xs">{consulta.codigo}</TableCell>
+                        <TableCell className="font-medium max-w-[200px] truncate">{consulta.titulo}</TableCell>
+                        <TableCell className="max-w-[150px] truncate">{consulta.empresa?.nombre || '-'}</TableCell>
+                        <TableCell>
+                          <Badge className={`${getPrioridadColor(consulta.prioridad)} text-white text-[10px]`}>
+                            {consulta.prioridad}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getEstadoColor(consulta.estado)} text-white text-[10px]`}>
+                            {consulta.estado.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Clock className={`w-3 h-3 ${slaStatus.color}`} />
+                            <span className={`text-xs ${slaStatus.color}`}>{slaStatus.label}</span>
                           </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </div>
+                        </TableCell>
+                        <TableCell className="text-right text-xs whitespace-nowrap">
+                          {format(new Date(consulta.createdAt), 'dd/MM/yyyy', { locale: es })}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      No se encontraron consultas con los filtros seleccionados
+                    </TableCell>
+                  </TableRow>
                 )}
-              </Droppable>
-            ))}
-          </div>
-        </DragDropContext>
+              </TableBody>
+            </Table>
+          </Card>
+        )
       ) : null}
 
       {/* Consulta Detail Dialog */}
@@ -1500,6 +1593,13 @@ function ComitesModule() {
   const [formData, setFormData] = useState({ nombre: '', descripcion: '', color: '#3b82f6', icono: 'shield' })
   const { user } = useAuthStore()
 
+  // Governance States
+  const [selectedComite, setSelectedComite] = useState<Comite | null>(null)
+  const [reuniones, setReuniones] = useState<any[]>([])
+  const [loadingGovernance, setLoadingGovernance] = useState(false)
+  const [showNewMeetingModal, setShowNewMeetingModal] = useState(false)
+  const [newMeeting, setNewMeeting] = useState({ titulo: '', descripcion: '', fecha: format(new Date(), 'yyyy-MM-dd'), horaInicio: '10:00' })
+
   const loadComites = useCallback(async () => {
     try {
       const data = await fetchApi<{ data: Comite[] }>('/api/comites')
@@ -1551,6 +1651,169 @@ function ComitesModule() {
     }
   }
 
+  const loadGovernance = async (comiteId: string) => {
+    setLoadingGovernance(true)
+    try {
+      const data = await fetchApi<{ data: any[] }>(`/api/comites/${comiteId}/reuniones`)
+      setReuniones(data.data || [])
+    } catch (error) {
+      toast.error('Error al cargar gobernanza')
+    } finally {
+      setLoadingGovernance(false)
+    }
+  }
+
+  const handleCreateMeeting = async () => {
+    if (!selectedComite) return
+    try {
+      await fetchApi(`/api/comites/${selectedComite.id}/reuniones`, {
+        method: 'POST',
+        body: JSON.stringify(newMeeting)
+      })
+      toast.success('Reunión programada')
+      setShowNewMeetingModal(false)
+      loadGovernance(selectedComite.id)
+    } catch (error) {
+      toast.error('Error al crear reunión')
+    }
+  }
+
+  if (selectedComite) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => setSelectedComite(null)} className="gap-2">
+            <ChevronLeft className="w-4 h-4" /> Volver a Comités
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: selectedComite.color }}>
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{selectedComite.nombre}</h2>
+              <p className="text-sm text-muted-foreground">Panel de Gobernanza y Acuerdos</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowNewMeetingModal(true)} className="bg-[#C5A059] hover:bg-[#A68040] text-white">
+            <Plus className="w-4 h-4 mr-2" /> Programar Reunión
+          </Button>
+        </div>
+
+        <Tabs defaultValue="reuniones" className="w-full">
+          <TabsList className="bg-slate-900 border-slate-800">
+            <TabsTrigger value="reuniones" className="data-[state=active]:bg-slate-800">Reuniones y Actas</TabsTrigger>
+            <TabsTrigger value="acuerdos" className="data-[state=active]:bg-slate-800">Seguimiento de Acuerdos</TabsTrigger>
+            <TabsTrigger value="miembros" className="data-[state=active]:bg-slate-800">Miembros</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="reuniones" className="mt-6">
+            <div className="grid gap-4">
+              {reuniones.length === 0 ? (
+                <Card className="bg-slate-950 border-dashed py-12 text-center text-muted-foreground">
+                  No hay reuniones registradas para este comité.
+                </Card>
+              ) : (
+                reuniones.map((reunion) => (
+                  <Card key={reunion.id} className="bg-slate-900 border-slate-800">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <div>
+                        <CardTitle className="text-lg">{reunion.titulo}</CardTitle>
+                        <CardDescription className="flex items-center gap-4 mt-1">
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(reunion.fecha), 'dd MMM, yyyy', { locale: es })}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {reunion.horaInicio}</span>
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline" className={reunion.estado === 'PROGRAMADA' ? 'border-blue-500 text-blue-500' : 'border-green-500 text-green-500'}>
+                        {reunion.estado}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-slate-400 mb-4">{reunion.descripcion}</p>
+                      <div className="space-y-2 border-t border-slate-800 pt-4">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Acuerdos ({reunion.acuerdos?.length || 0})</h4>
+                        {reunion.acuerdos?.map((acuerdo: any) => (
+                          <div key={acuerdo.id} className="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800/50">
+                            <div>
+                              <p className="text-sm font-bold text-white">{acuerdo.titulo}</p>
+                              <p className="text-[10px] text-slate-500">Resp: {acuerdo.responsable}</p>
+                            </div>
+                            <Badge variant="secondary" className="text-[9px] uppercase">{acuerdo.estado}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="acuerdos">
+             {/* Simplified Agreements tracking view */}
+             <Card className="bg-slate-900 border-slate-800">
+               <CardHeader><CardTitle>Consolidado de Acuerdos</CardTitle></CardHeader>
+               <CardContent>
+                 <Table>
+                   <TableHeader>
+                     <TableRow className="hover:bg-transparent">
+                       <TableHead className="text-slate-500">Acuerdo</TableHead>
+                       <TableHead className="text-slate-500">Responsable</TableHead>
+                       <TableHead className="text-slate-500">Estado</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {reuniones.flatMap(r => r.acuerdos || []).map((a: any) => (
+                       <TableRow key={a.id} className="border-slate-800">
+                         <TableCell>
+                           <p className="font-bold text-slate-200">{a.titulo}</p>
+                           <p className="text-xs text-slate-500">{a.descripcion}</p>
+                         </TableCell>
+                         <TableCell className="text-slate-400">{a.responsable}</TableCell>
+                         <TableCell><Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">{a.estado}</Badge></TableCell>
+                       </TableRow>
+                     ))}
+                   </TableBody>
+                 </Table>
+               </CardContent>
+             </Card>
+          </TabsContent>
+        </Tabs>
+
+        <Dialog open={showNewMeetingModal} onOpenChange={setShowNewMeetingModal}>
+          <DialogContent className="bg-slate-950 border-slate-800 text-slate-200">
+            <DialogHeader>
+              <DialogTitle>Programar Nueva Reunión</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Título de la Reunión</Label>
+                <Input value={newMeeting.titulo} onChange={(e) => setNewMeeting({...newMeeting, titulo: e.target.value})} className="bg-slate-900 border-slate-800" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Fecha</Label>
+                  <Input type="date" value={newMeeting.fecha} onChange={(e) => setNewMeeting({...newMeeting, fecha: e.target.value})} className="bg-slate-900 border-slate-800" />
+                </div>
+                <div>
+                  <Label>Hora Inicio</Label>
+                  <Input type="time" value={newMeeting.horaInicio} onChange={(e) => setNewMeeting({...newMeeting, horaInicio: e.target.value})} className="bg-slate-900 border-slate-800" />
+                </div>
+              </div>
+              <div>
+                <Label>Agenda / Descripción</Label>
+                <Textarea value={newMeeting.descripcion} onChange={(e) => setNewMeeting({...newMeeting, descripcion: e.target.value})} className="bg-slate-900 border-slate-800" rows={4} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowNewMeetingModal(false)}>Cancelar</Button>
+              <Button onClick={handleCreateMeeting} className="bg-blue-600 hover:bg-blue-700">Crear Reunión</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
+
   if (loading) return <div className="flex items-center justify-center h-64">Cargando...</div>
 
   return (
@@ -1569,7 +1832,14 @@ function ComitesModule() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {comites.map(comite => (
-          <Card key={comite.id} className="overflow-hidden">
+          <Card 
+            key={comite.id} 
+            className="overflow-hidden cursor-pointer hover:border-[#C5A059] transition-all group"
+            onClick={() => {
+              setSelectedComite(comite)
+              loadGovernance(comite.id)
+            }}
+          >
             <div className="h-2" style={{ backgroundColor: comite.color }} />
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -1649,6 +1919,8 @@ function CandidatosModule() {
   const [selectedCandidato, setSelectedCandidato] = useState<CandidatoAsesor | null>(null)
   const [openRechazar, setOpenRechazar] = useState(false)
   const [motivoRechazo, setMotivoRechazo] = useState('')
+  const [openSolicitarInfo, setOpenSolicitarInfo] = useState(false)
+  const [mensajeInfo, setMensajeInfo] = useState('')
 
   const loadCandidatos = useCallback(async () => {
     try {
@@ -1692,12 +1964,29 @@ function CandidatosModule() {
     }
   }
 
+  const handleSolicitarInfo = async () => {
+    if (!selectedCandidato || !mensajeInfo) return
+    try {
+      await fetchApi(`/api/candidatos/${selectedCandidato.id}/solicitar-info`, {
+        method: 'POST',
+        body: JSON.stringify({ mensaje: mensajeInfo }),
+      })
+      toast.success('Solicitud de información enviada por correo')
+      setOpenSolicitarInfo(false)
+      setMensajeInfo('')
+      loadCandidatos()
+    } catch (error) {
+      toast.error('Error al enviar solicitud')
+    }
+  }
+
   const getEstadoColor = (estado: string) => {
     const colors: Record<string, string> = {
       PENDIENTE: 'bg-gray-500',
       EN_REVISION: 'bg-blue-500',
       ENTREVISTA: 'bg-yellow-500',
       EVALUACION: 'bg-purple-500',
+      SOLICITUD_INFORMACION: 'bg-amber-500',
       APROBADO: 'bg-green-500',
       RECHAZADO: 'bg-red-500',
       INCORPORADO: 'bg-emerald-500',
@@ -1747,6 +2036,9 @@ function CandidatosModule() {
                       <Button size="sm" onClick={() => handleAprobar(candidato.id)}>
                         <Check className="w-4 h-4 mr-1" /> Aprobar
                       </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedCandidato(candidato); setOpenSolicitarInfo(true) }}>
+                        <Mail className="w-4 h-4 mr-1" /> Pedir Info
+                      </Button>
                       <Button variant="destructive" size="sm" onClick={() => { setSelectedCandidato(candidato); setOpenRechazar(true) }}>
                         <XCircle className="w-4 h-4 mr-1" /> Rechazar
                       </Button>
@@ -1790,19 +2082,49 @@ function CandidatosModule() {
         </DialogContent>
       </Dialog>
 
+      {/* Solicitar Información Dialog */}
+      <Dialog open={openSolicitarInfo} onOpenChange={setOpenSolicitarInfo}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Solicitar Información Adicional</DialogTitle>
+            <DialogDescription>
+              Se enviará un correo electrónico a <strong>{selectedCandidato?.nombre}</strong> solicitando los detalles que indique a continuación.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Label>Mensaje para el candidato *</Label>
+            <Textarea 
+              value={mensajeInfo} 
+              onChange={(e) => setMensajeInfo(e.target.value)} 
+              placeholder="Ej. Favor adjuntar constancia de certificación en blockchain..." 
+              rows={5}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setOpenSolicitarInfo(false); setMensajeInfo('') }}>Cancelar</Button>
+            <Button onClick={handleSolicitarInfo} disabled={!mensajeInfo} className="bg-amber-500 hover:bg-amber-600">
+              <Send className="w-4 h-4 mr-2" /> Enviar Correo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Rechazar Dialog */}
       <Dialog open={openRechazar} onOpenChange={setOpenRechazar}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rechazar Candidato</DialogTitle>
+            <DialogDescription>
+              Al confirmar, el candidato recibirá un correo institucional notificando que no ha sido seleccionado en esta oportunidad.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <Label>Motivo del rechazo *</Label>
-            <Textarea value={motivoRechazo} onChange={(e) => setMotivoRechazo(e.target.value)} placeholder="Explique el motivo del rechazo..." />
+          <div className="space-y-4 py-2">
+            <Label>Motivo interno del rechazo *</Label>
+            <Textarea value={motivoRechazo} onChange={(e) => setMotivoRechazo(e.target.value)} placeholder="Este motivo se guardará en el historial interno..." />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setOpenRechazar(false); setMotivoRechazo('') }}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleRechazar} disabled={!motivoRechazo}>Rechazar</Button>
+            <Button variant="destructive" onClick={handleRechazar} disabled={!motivoRechazo}>Rechazar y Notificar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2708,145 +3030,357 @@ function ConsultationForm({ onSuccess }: { onSuccess: (codigo: string) => void }
     }
   }
 
+  const steps = [
+    { title: 'Identidad', sub: 'Datos del Solicitante', icon: UserIcon },
+    { title: 'Requerimiento', sub: 'Detalles de la Consulta', icon: MessageSquare },
+    { title: 'Destino', sub: 'Comité(s) de Destinatarios', icon: Users },
+    { title: 'Revisión', sub: 'Validar y Enviar', icon: ClipboardList }
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-lg font-semibold">Paso {step} de 4</h3>
-        <p className="text-sm text-muted-foreground">
-          {step === 1 ? 'Datos del Solicitante' : step === 2 ? 'Detalles de la Consulta' : step === 3 ? 'Comité(s) Destinatarios' : 'Confirmación'}
-        </p>
-      </div>
-
-      <div className="flex gap-2">
-        {[1, 2, 3, 4].map(s => (
-          <div key={s} className={`flex-1 h-2 rounded ${s <= step ? 'bg-[#C5A059]' : 'bg-slate-800'}`} />
-        ))}
-      </div>
-
-      {step === 1 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Nombre y Apellido *</Label><Input className="bg-slate-900 border-slate-800" value={formData.nombreSolicitante} onChange={(e) => setFormData({ ...formData, nombreSolicitante: e.target.value })} required /></div>
-          <div className="space-y-2"><Label>Email *</Label><Input className="bg-slate-900 border-slate-800" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required /></div>
-          <div className="space-y-2"><Label>Teléfono</Label><Input className="bg-slate-900 border-slate-800" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} /></div>
-          <div className="space-y-2"><Label>RIF</Label><Input className="bg-slate-900 border-slate-800" value={formData.rif} onChange={(e) => setFormData({ ...formData, rif: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Empresa/Organización</Label><Input className="bg-slate-900 border-slate-800" value={formData.empresa} onChange={(e) => setFormData({ ...formData, empresa: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Cargo</Label><Input className="bg-slate-900 border-slate-800" value={formData.cargo} onChange={(e) => setFormData({ ...formData, cargo: e.target.value })} /></div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="space-y-4">
-          <div className="space-y-2"><Label>Título de la Consulta *</Label><Input className="bg-slate-900 border-slate-800" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required /></div>
-          <div className="space-y-2"><Label>Descripción Detallada *</Label><Textarea className="bg-slate-900 border-slate-800" rows={5} value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} required /></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Tipo de Consulta</Label>
-              <Select value={formData.tipo} onValueChange={(v) => setFormData({ ...formData, tipo: v as TipoConsulta })}>
-                <SelectTrigger className="bg-slate-900 border-slate-800"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LEGAL">Legal</SelectItem>
-                  <SelectItem value="FISCAL">Fiscal</SelectItem>
-                  <SelectItem value="TECNICA">Técnica</SelectItem>
-                  <SelectItem value="MIXTA">Mixta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2"><Label>Prioridad</Label>
-              <Select value={formData.prioridad} onValueChange={(v) => setFormData({ ...formData, prioridad: v as PrioridadConsulta })}>
-                <SelectTrigger className="bg-slate-900 border-slate-800"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BAJA">Baja</SelectItem>
-                  <SelectItem value="MEDIA">Media</SelectItem>
-                  <SelectItem value="ALTA">Alta</SelectItem>
-                  <SelectItem value="URGENTE">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2"><Label>SLA Esperado</Label>
-            <Select value={formData.slaTipo} onValueChange={(v) => setFormData({ ...formData, slaTipo: v as 'ESTANDAR' | 'COMPLEJO' })}>
-              <SelectTrigger className="bg-slate-900 border-slate-800"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ESTANDAR">Estándar (72 horas)</SelectItem>
-                <SelectItem value="COMPLEJO">Complejo (5-10 días hábiles)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-4">
-          <Label className="text-base">Seleccione el(los) comité(s) destinatarios:</Label>
-          <div className="grid gap-3">
-            {comites.map(comite => (
-              <div key={comite.id} className="flex items-center space-x-3 p-4 border border-slate-800 rounded-2xl bg-slate-900/50 hover:bg-slate-900 transition-colors">
-                <Checkbox
-                  id={comite.id}
-                  checked={formData.comiteIds.includes(comite.id)}
-                  onCheckedChange={(checked) => {
-                    setFormData({
-                      ...formData,
-                      comiteIds: checked
-                        ? [...formData.comiteIds, comite.id]
-                        : formData.comiteIds.filter(id => id !== comite.id),
-                    })
-                  }}
-                />
-                <div className="flex-1">
-                  <Label htmlFor={comite.id} className="font-bold cursor-pointer">{comite.nombre}</Label>
-                  {comite.descripcion && <p className="text-xs text-slate-500">{comite.descripcion}</p>}
-                </div>
-                <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: comite.color }} />
+    <div className="space-y-8">
+      {/* Enhanced Progress Indicator */}
+      <div className="relative">
+        <div className="flex justify-between mb-2">
+          {steps.map((s, i) => (
+            <div key={i} className="flex flex-col items-center gap-1 z-10">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border ${
+                step > i + 1 ? 'bg-green-500 border-green-600 text-white' : 
+                step === i + 1 ? 'bg-[#C5A059] border-[#A68040] text-white shadow-[0_0_15px_rgba(197,160,89,0.3)] scale-110' : 
+                'bg-slate-900 border-slate-800 text-slate-500'
+              }`}>
+                {step > i + 1 ? <Check className="w-4 h-4" /> : <s.icon className="w-4 h-4" />}
               </div>
-            ))}
-          </div>
+              <span className={`text-[10px] uppercase tracking-tighter font-bold ${step === i + 1 ? 'text-[#C5A059]' : 'text-slate-500'}`}>
+                {s.title}
+              </span>
+            </div>
+          ))}
+          {/* Connector Line */}
+          <div className="absolute top-4 left-4 right-4 h-[1px] bg-slate-800 -z-0" />
+          <div 
+            className="absolute top-4 left-4 h-[1px] bg-[#C5A059] transition-all duration-500 -z-0" 
+            style={{ width: `${((step - 1) / (steps.length - 1)) * 92}%` }}
+          />
         </div>
-      )}
+      </div>
 
-      {step === 4 && (
-        <div className="space-y-6">
-          <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-[24px] space-y-3">
-            <h4 className="font-bold text-[#C5A059] flex items-center gap-2">
-              <ClipboardList className="w-4 h-4" /> Resumen de la Consulta
-            </h4>
-            <div className="grid grid-cols-2 gap-y-2 text-sm">
-              <span className="text-slate-500">Solicitante:</span> <span className="text-slate-200">{formData.nombreSolicitante}</span>
-              <span className="text-slate-500">Email:</span> <span className="text-slate-200">{formData.email}</span>
-              <span className="text-slate-500">Empresa:</span> <span className="text-slate-200">{formData.empresa || '-'}</span>
-              <span className="text-slate-500">Título:</span> <span className="text-slate-200">{formData.titulo}</span>
-              <span className="text-slate-500">Tipo:</span> <span className="text-slate-200 font-bold">{formData.tipo}</span>
-              <span className="text-slate-500">Prioridad:</span> <span className="text-slate-200 font-bold">{formData.prioridad}</span>
-              <span className="text-slate-500">SLA:</span> <span className="text-slate-200">{formData.slaTipo === 'ESTANDAR' ? '72 horas' : '5-10 días hábiles'}</span>
+      <div className="pt-2">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                {step === 1 && <UserIcon className="w-5 h-5 text-[#C5A059]" />}
+                {step === 2 && <MessageSquare className="w-5 h-5 text-[#C5A059]" />}
+                {step === 3 && <Users className="w-5 h-5 text-[#C5A059]" />}
+                {step === 4 && <ClipboardList className="w-5 h-5 text-[#C5A059]" />}
+                {steps[step - 1].sub}
+              </h3>
+              <p className="text-sm text-slate-400">Complete los campos requeridos marcados con (*)</p>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3 p-3 rounded-xl bg-[#C5A059]/5 border border-[#C5A059]/10">
-              <Checkbox id="neutralidad" checked={formData.aceptaNeutralidad} onCheckedChange={(v) => setFormData({ ...formData, aceptaNeutralidad: !!v })} />
-              <Label htmlFor="neutralidad" className="text-xs leading-relaxed text-slate-400 cursor-pointer">
-                <span className="text-[#C5A059] font-bold">Pacto de Neutralidad:</span> La Mesa Técnica actúa de manera objetiva e imparcial, sin promover marcas comerciales específicas.
-              </Label>
-            </div>
-            <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <Checkbox id="terminos" checked={formData.aceptaTerminos} onCheckedChange={(v) => setFormData({ ...formData, aceptaTerminos: !!v })} />
-              <Label htmlFor="terminos" className="text-xs leading-relaxed text-slate-400 cursor-pointer">
-                Acepto los <span className="text-white underline cursor-pointer">Términos y Condiciones</span> y la Política de Tratamiento de Datos Personales.
-              </Label>
-            </div>
-          </div>
-        </div>
-      )}
+            {step === 1 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Nombre y Apellido *</Label>
+                  <div className="relative group">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      placeholder="Ingrese su nombre completo"
+                      value={formData.nombreSolicitante} 
+                      onChange={(e) => setFormData({ ...formData, nombreSolicitante: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Email Institucional/Personal *</Label>
+                  <div className="relative group">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      type="email" 
+                      placeholder="correo@ejemplo.com"
+                      value={formData.email} 
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Teléfono de Contacto</Label>
+                  <div className="relative group">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      placeholder="+58 4XX XXX XX XX"
+                      value={formData.telefono} 
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">RIF (Opcional)</Label>
+                  <div className="relative group">
+                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      placeholder="J-00000000-0"
+                      value={formData.rif} 
+                      onChange={(e) => setFormData({ ...formData, rif: e.target.value })} 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Empresa / Organización</Label>
+                  <div className="relative group">
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      placeholder="Nombre de la institución"
+                      value={formData.empresa} 
+                      onChange={(e) => setFormData({ ...formData, empresa: e.target.value })} 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Cargo dentro de la Entidad</Label>
+                  <div className="relative group">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#C5A059] transition-colors" />
+                    <Input 
+                      className="pl-10 bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                      placeholder="Ej: Director de Tecnología"
+                      value={formData.cargo} 
+                      onChange={(e) => setFormData({ ...formData, cargo: e.target.value })} 
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
-      <div className="flex justify-between pt-4">
-        {step > 1 && <Button variant="outline" className="border-slate-800 text-slate-400 hover:bg-slate-800" onClick={() => setStep(step - 1)}>Anterior</Button>}
-        <div className="ml-auto flex gap-3">
+            {step === 2 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Título de la Consulta *</Label>
+                  <Input 
+                    className="bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all" 
+                    placeholder="Resumen corto de su requerimiento"
+                    value={formData.titulo} 
+                    onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} 
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Descripción Detallada *</Label>
+                  <Textarea 
+                    className="bg-slate-900/50 border-slate-800 focus:border-[#C5A059]/50 transition-all min-h-[150px] resize-none" 
+                    placeholder="Explique su consulta técnica de la manera más detallada posible para facilitar el análisis..."
+                    rows={5} 
+                    value={formData.descripcion} 
+                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} 
+                    required 
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Área Geográfica / Tipo</Label>
+                    <Select value={formData.tipo} onValueChange={(v) => setFormData({ ...formData, tipo: v as TipoConsulta })}>
+                      <SelectTrigger className="bg-slate-900/50 border-slate-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                        <SelectItem value="LEGAL">Legal / Normativo</SelectItem>
+                        <SelectItem value="FISCAL">Fiscal / Tributario</SelectItem>
+                        <SelectItem value="TECNICA">Técnico / Implementación</SelectItem>
+                        <SelectItem value="MIXTA">Proyecto Integral / Mixta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Prioridad Requerida</Label>
+                    <Select value={formData.prioridad} onValueChange={(v) => setFormData({ ...formData, prioridad: v as PrioridadConsulta })}>
+                      <SelectTrigger className="bg-slate-900/50 border-slate-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                        <SelectItem value="BAJA">Baja (Informativa)</SelectItem>
+                        <SelectItem value="MEDIA">Media (Análisis Técnico)</SelectItem>
+                        <SelectItem value="ALTA">Alta (Urgencia Operativa)</SelectItem>
+                        <SelectItem value="URGENTE">Crítica (Bloqueo / Legal)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-900/30 border border-slate-800 flex items-start gap-3">
+                  <Info className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <span className="text-white font-bold block mb-1">Acuerdo de Niveles de Servicio (SLA)</span>
+                    Las consultas se procesan bajo un estándar de 72 horas para requerimientos básicos. Proyectos complejos pueden requerir dictámenes de 5 a 10 días hábiles.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-400 mb-2">Seleccione los comités que deben evaluar su requerimiento:</p>
+                <ScrollArea className="h-[300px] pr-4">
+                  <div className="grid gap-4">
+                    {comites.length > 0 ? (
+                      comites.map(comite => (
+                        <div 
+                          key={comite.id} 
+                          className={`flex items-center space-x-4 p-4 border rounded-2xl transition-all cursor-pointer ${
+                            formData.comiteIds.includes(comite.id) 
+                            ? 'border-[#C5A059] bg-[#C5A059]/5' 
+                            : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50'
+                          }`}
+                          onClick={() => {
+                             const checked = formData.comiteIds.includes(comite.id);
+                             setFormData({
+                               ...formData,
+                               comiteIds: !checked
+                                 ? [...formData.comiteIds, comite.id]
+                                 : formData.comiteIds.filter(id => id !== comite.id),
+                             })
+                          }}
+                        >
+                          <Checkbox
+                            id={comite.id}
+                            checked={formData.comiteIds.includes(comite.id)}
+                            className="data-[state=checked]:bg-[#C5A059] data-[state=checked]:border-[#C5A059]"
+                          />
+                          <div className="flex-1">
+                            <Label htmlFor={comite.id} className="text-sm font-bold block text-white cursor-pointer">{comite.nombre}</Label>
+                            {comite.descripcion && <p className="text-[11px] text-slate-500 line-clamp-1">{comite.descripcion}</p>}
+                          </div>
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: comite.color }} />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-slate-500 text-sm italic">Cargando comités...</div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-[28px] space-y-4 shadow-inner">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <h4 className="font-bold text-[#C5A059] text-sm flex items-center gap-2">
+                       <CheckCircle2 className="w-4 h-4" /> Resumen del Requerimiento
+                    </h4>
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px] text-slate-500 uppercase hover:text-[#C5A059]" onClick={() => setStep(1)}>
+                      Editar Todo
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Solicitante</p>
+                      <p className="text-sm text-slate-200">{formData.nombreSolicitante}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Email</p>
+                      <p className="text-sm text-slate-200 truncate">{formData.email}</p>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Asunto</p>
+                      <p className="text-sm text-slate-200 font-bold">{formData.titulo}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Categoría</p>
+                      <Badge variant="outline" className="text-xs bg-slate-800/50">{formData.tipo}</Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Prioridad</p>
+                      <Badge className={`${getPrioridadColor(formData.prioridad)} text-white text-[10px]`}>{formData.prioridad}</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className={`p-4 rounded-2xl border transition-all ${formData.aceptaNeutralidad ? 'border-green-500/20 bg-green-500/5' : 'bg-slate-900/50 border-slate-800'}`}>
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="neutralidad" 
+                        checked={formData.aceptaNeutralidad} 
+                        onCheckedChange={(v) => setFormData({ ...formData, aceptaNeutralidad: !!v })} 
+                        className="mt-1 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      />
+                      <Label htmlFor="neutralidad" className="text-[11px] leading-relaxed text-slate-400 cursor-pointer">
+                        <span className="text-white font-bold">Pacto de Neutralidad:</span> Entiendo que la Mesa Técnica actúa bajo principios de objetividad institucional, sin favoritismos ni recomendaciones comerciales de marcas específicas.
+                      </Label>
+                    </div>
+                  </div>
+                  <div className={`p-4 rounded-2xl border transition-all ${formData.aceptaTerminos ? 'border-blue-500/20 bg-blue-500/5' : 'bg-slate-900/50 border-slate-800'}`}>
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="terminos" 
+                        checked={formData.aceptaTerminos} 
+                        onCheckedChange={(v) => setFormData({ ...formData, aceptaTerminos: !!v })} 
+                        className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                      <Label htmlFor="terminos" className="text-[11px] leading-relaxed text-slate-400 cursor-pointer">
+                        He leído y acepto los <span className="text-[#C5A059] hover:underline cursor-pointer">Términos y Condiciones</span> de uso de la plataforma y su Política de Tratamiento de Datos.
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="flex items-center justify-between pt-6 border-t border-slate-800">
+        <Button 
+          variant="ghost" 
+          disabled={step === 1 || loading}
+          className="text-slate-400 hover:text-white hover:bg-slate-800 font-bold" 
+          onClick={() => setStep(step - 1)}
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" /> Anterior
+        </Button>
+        <div className="flex gap-3">
           {step < 4 ? (
-            <Button className="bg-[#C5A059] hover:bg-[#A68040] font-bold" onClick={() => setStep(step + 1)} disabled={step === 3 && formData.comiteIds.length === 0}>
+            <Button 
+              className="bg-[#C5A059] hover:bg-[#A68040] text-white font-bold px-8" 
+              onClick={() => {
+                if (step === 1 && (!formData.nombreSolicitante || !formData.email)) {
+                  toast.error('Por favor complete los campos obligatorios');
+                  return;
+                }
+                if (step === 2 && (!formData.titulo || !formData.descripcion)) {
+                  toast.error('Por favor complete los detalles de la consulta');
+                  return;
+                }
+                if (step === 3 && formData.comiteIds.length === 0) {
+                  toast.error('Debe seleccionar al menos un comité');
+                  return;
+                }
+                setStep(step + 1);
+              }}
+            >
               Siguiente <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button className="bg-gradient-to-r from-[#C5A059] to-[#A68040] hover:shadow-lg hover:shadow-[#C5A059]/20 font-bold" onClick={handleSubmit} disabled={!formData.aceptaTerminos || !formData.aceptaNeutralidad} loading={loading}>
-              <Send className="w-4 h-4 mr-2" /> Enviar Consulta
+            <Button 
+              className="bg-gradient-to-r from-[#C5A059] to-[#927843] hover:shadow-[0_0_20px_rgba(197,160,89,0.2)] text-white font-bold px-10 border-none h-11" 
+              onClick={handleSubmit} 
+              disabled={!formData.aceptaTerminos || !formData.aceptaNeutralidad || loading}
+            >
+              {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+              Enviar Consulta Técnica
             </Button>
           )}
         </div>
@@ -2904,10 +3438,10 @@ function CandidateForm({ onSuccess }: { onSuccess: () => void }) {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    nombre: '', email: '', telefono: '', ciudad: '', pais: 'Venezuela',
+    nombre: '', apellido: '', email: '', telefono: '', ciudad: '', pais: 'Venezuela',
     profesion: '', especialidad: '', experiencia: '', tituloAcademico: '',
     comitePreferidoId: '', disponibilidad: 'TIEMPO_COMPLETO',
-    cvUrl: '', cartaMotivacionUrl: '', motivacion: '',
+    cvUrl: '', cartaMotivacionUrl: '', biografia: '',
   })
   const [comites, setComites] = useState<Comite[]>([])
 
@@ -2948,10 +3482,11 @@ function CandidateForm({ onSuccess }: { onSuccess: () => void }) {
 
       {step === 1 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Nombre completo *</Label><Input className="bg-slate-900 border-slate-800" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} required /></div>
+          <div className="space-y-2"><Label>Nombre *</Label><Input className="bg-slate-900 border-slate-800" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} required /></div>
+          <div className="space-y-2"><Label>Apellido *</Label><Input className="bg-slate-900 border-slate-800" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} required /></div>
           <div className="space-y-2"><Label>Email *</Label><Input className="bg-slate-900 border-slate-800" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required /></div>
           <div className="space-y-2"><Label>Teléfono</Label><Input className="bg-slate-900 border-slate-800" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Ciudad</Label><Input className="bg-slate-900 border-slate-800" value={formData.ciudad} onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })} /></div>
+          <div className="space-y-2 md:col-span-2"><Label>Ciudad / País</Label><Input className="bg-slate-900 border-slate-800" value={`${formData.ciudad}${formData.ciudad && ', '}${formData.pais}`} disabled /></div>
         </div>
       )}
 
@@ -2992,13 +3527,14 @@ function CandidateForm({ onSuccess }: { onSuccess: () => void }) {
 
       {step === 4 && (
         <div className="space-y-6">
-          <div className="space-y-2"><Label>Carta de Motivación *</Label><Textarea className="bg-slate-900 border-slate-800" rows={6} placeholder="Explique por qué desea formar parte de la Mesa Técnica..." value={formData.motivacion} onChange={(e) => setFormData({ ...formData, motivacion: e.target.value })} required /></div>
+          <div className="space-y-2"><Label>Biografía / Motivación *</Label><Textarea className="bg-slate-900 border-slate-800" rows={6} placeholder="Explique por qué desea formar parte de la Mesa Técnica..." value={formData.biografia} onChange={(e) => setFormData({ ...formData, biografia: e.target.value })} required /></div>
           <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-[24px]">
             <h4 className="font-bold text-[#00459E] mb-3 flex items-center gap-2">
               <UserCheck className="w-4 h-4" /> Resumen de su Postulación
             </h4>
             <div className="grid grid-cols-2 gap-y-2 text-sm">
               <span className="text-slate-500">Nombre:</span> <span className="text-slate-200">{formData.nombre}</span>
+              <span className="text-slate-500">Apellido:</span> <span className="text-slate-200">{formData.apellido}</span>
               <span className="text-slate-500">Email:</span> <span className="text-slate-200">{formData.email}</span>
               <span className="text-slate-500">Profesión:</span> <span className="text-slate-200">{formData.profesion}</span>
               <span className="text-slate-500">Especialidad:</span> <span className="text-slate-200">{formData.especialidad}</span>
@@ -3015,7 +3551,7 @@ function CandidateForm({ onSuccess }: { onSuccess: () => void }) {
               Siguiente <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button className="bg-gradient-to-r from-[#00459E] to-[#001C3D] hover:shadow-lg hover:shadow-[#00459E]/20 font-bold" onClick={handleSubmit} disabled={!formData.motivacion} loading={loading}>
+            <Button className="bg-gradient-to-r from-[#00459E] to-[#001C3D] hover:shadow-lg hover:shadow-[#00459E]/20 font-bold" onClick={handleSubmit} disabled={!formData.biografia} loading={loading}>
               <UserPlus className="w-4 h-4 mr-2" /> Enviar Postulación
             </Button>
           )}
@@ -3730,6 +4266,7 @@ export function MesaTecnicaApp() {
   const getMenuItems = () => {
     const items = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'SECRETARIA_TECNICA', 'ASESOR', 'EMPRESA_AFILIADA'] },
+      { id: 'foro', label: 'Foro', icon: Hash, roles: ['ADMIN', 'SECRETARIA_TECNICA', 'ASESOR', 'EMPRESA_AFILIADA'] },
       { id: 'consultas', label: 'Consultas', icon: MessageSquare, roles: ['ADMIN', 'SECRETARIA_TECNICA', 'ASESOR', 'EMPRESA_AFILIADA'] },
       { id: 'asesores', label: 'Asesores', icon: Users, roles: ['ADMIN', 'SECRETARIA_TECNICA', 'ASESOR'] },
       { id: 'usuarios', label: 'Usuarios', icon: UserIcon, roles: ['ADMIN'] },
@@ -3889,6 +4426,7 @@ export function MesaTecnicaApp() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === 'dashboard' && <DashboardModule />}
+              {activeTab === 'foro' && <ForoModule />}
               {activeTab === 'consultas' && <ConsultasModule />}
               {activeTab === 'asesores' && <AsesoresModule />}
               {activeTab === 'usuarios' && <UsuariosModule />}
@@ -3905,6 +4443,8 @@ export function MesaTecnicaApp() {
 
       <ConsultationFormModal open={showConsultationForm} onClose={() => setShowConsultationForm(false)} />
       <CandidateFormModal open={showCandidateForm} onClose={() => setShowCandidateForm(false)} />
+      
+      <Criptobot />
     </div>
   )
 }

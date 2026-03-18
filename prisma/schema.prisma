@@ -54,6 +54,7 @@ enum EstadoCandidato {
   EN_REVISION
   ENTREVISTA
   EVALUACION
+  SOLICITUD_INFORMACION
   APROBADO
   RECHAZADO
   INCORPORADO
@@ -113,6 +114,8 @@ model User {
   encuestas             EncuestaSatisfaccion[]
   candidatoAsesor       CandidatoAsesor?
   videosSubidos         VideoComite[]         @relation("VideosAutor")
+  foroTemas             ForoTema[]
+  foroPosts             ForoPost[]
 
   @@index([email])
   @@index([rol])
@@ -159,6 +162,7 @@ model Comite {
   asesores              Asesor[]              @relation("AsesorComite")
   consultas             ConsultaComite[]
   videos                VideoComite[]
+  reuniones             ReunionComite[]
 
   @@index([activo])
 }
@@ -557,5 +561,68 @@ model VideoComite {
   autor       User     @relation("VideosAutor", fields: [autorId], references: [id])
 
   @@index([comiteId])
+  @@index([autorId])
+}
+
+// ====================
+// GOBERNANZA DE COMITE
+// ====================
+
+model ReunionComite {
+  id          String   @id @default(cuid())
+  titulo      String
+  descripcion String?
+  fecha       DateTime
+  comiteId    String
+  comite      Comite   @relation(fields: [comiteId], references: [id], onDelete: Cascade)
+  acuerdos    AcuerdoComite[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([comiteId])
+}
+
+model AcuerdoComite {
+  id          String   @id @default(cuid())
+  descripcion String
+  reunionId   String
+  reunion     ReunionComite @relation(fields: [reunionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([reunionId])
+}
+
+// ====================
+// FORO DE DISCUSION
+// ====================
+
+model ForoTema {
+  id          String   @id @default(cuid())
+  titulo      String
+  contenido   String
+  categoria   String?
+  autorId     String
+  autor       User     @relation(fields: [autorId], references: [id])
+  posts       ForoPost[]
+  vistas      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([autorId])
+  @@index([categoria])
+}
+
+model ForoPost {
+  id          String   @id @default(cuid())
+  contenido   String
+  temaId      String
+  tema        ForoTema @relation(fields: [temaId], references: [id], onDelete: Cascade)
+  autorId     String
+  autor       User     @relation(fields: [autorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([temaId])
   @@index([autorId])
 }
