@@ -566,21 +566,32 @@ function ConsultasModule() {
     }
   }, [filterComite, searchQuery])
 
+  // Fetch initial data
   useEffect(() => {
-    loadConsultas()
     fetchApi<{ data: Comite[] }>('/api/comites').then(data => setComites(data.data || []))
-  }, [loadConsultas])
+  }, [])
 
-  const handleUpdateEstado = async (id: string, nuevoEstado: EstadoConsulta) => {
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadConsultas()
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchQuery, filterComite, loadConsultas])
+
+  const handleUpdateEstado = async (id: string, nuevoEstado: EstadoConsulta, previousState?: Consulta[]) => {
     try {
       await fetchApi(`/api/consultas/${id}/estado`, {
         method: 'PUT',
         body: JSON.stringify({ estado: nuevoEstado }),
       })
-      toast.success('Estado actualizado')
-      loadConsultas()
+      toast.success(`Estado actualizado a ${nuevoEstado.replace('_', ' ')}`)
+      // No necesitamos recargar todo si fue un Drag, pero por seguridad:
+      if (!previousState) loadConsultas()
     } catch (error) {
       toast.error('Error al actualizar estado')
+      if (previousState) setConsultas(previousState)
+      else loadConsultas()
     }
   }
 
@@ -643,17 +654,8 @@ function ConsultasModule() {
       c.id === consultaId ? { ...c, estado: nuevoEstado } : c
     ))
 
-    try {
-      await fetchApi(`/api/consultas/${consultaId}/estado`, {
-        method: 'PUT',
-        body: JSON.stringify({ estado: nuevoEstado }),
-      })
-      toast.success(`Consulta movida a ${nuevoEstado.replace('_', ' ')}`)
-    } catch (error) {
-      // Revert optimistic update
-      setConsultas(previousConsultas)
-      toast.error('Error al actualizar estado')
-    }
+    // Usar la función compartida con lógica de reversión
+    handleUpdateEstado(consultaId, nuevoEstado, previousConsultas)
   }
 
   const columns: EstadoConsulta[] = ['RECIBIDA', 'CLASIFICADA', 'ASIGNADA', 'EN_PROCESO', 'DICTAMEN', 'CERRADA']
