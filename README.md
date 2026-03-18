@@ -27,14 +27,15 @@ RECIBIDA → CLASIFICADA → ASIGNADA → EN_PROCESO → DICTAMEN → CERRADA
 
 ## 🧩 Módulos
 
-| Módulo | Descripción |
-|--------|-------------|
 | Dashboard | Estadísticas y métricas generales |
-| Consultas | Pipeline Kanban, foro, documentos |
+| Consultas | Pipeline Kanban, vista de lista, documentos |
 | Asesores | Directorio y perfiles técnicos |
+| Foro | Discusión técnica categorizada por temas |
+| Criptobot | Asistente IA con contexto de consultas y comités |
+| Gobernanza | Reuniones de comités y actas de acuerdos |
 | Usuarios | Gestión con roles |
 | Comités | Gestión de comités especializados |
-| Candidatos | Onboarding de nuevos asesores |
+| Candidatos | Onboarding de nuevos asesores con notificaciones |
 | Agenda | Calendario de eventos y vencimientos |
 | Base de Conocimiento | Artículos técnicos |
 | Configuración | Parámetros del sistema |
