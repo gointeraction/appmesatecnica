@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
     const empresaId = searchParams.get('empresa');
     const asesorId = searchParams.get('asesor');
     const search = searchParams.get('search');
+    const codigo = searchParams.get('codigo');
     
     // Pagination
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -106,6 +107,10 @@ export async function GET(request: NextRequest) {
         { codigo: { contains: search } },
         { descripcion: { contains: search } },
       ];
+    }
+
+    if (codigo) {
+      where.codigo = codigo;
     }
 
     // Get total count
@@ -209,28 +214,51 @@ export async function POST(request: NextRequest) {
       prioridad,
       slaTipo,
       empresaId,
+      email,
+      nombreSolicitante,
       comiteIds,
       asesorPrincipalId,
       asesoresApoyoIds,
     } = body;
 
     // Validate required fields
-    if (!titulo || !descripcion || !tipo || !empresaId) {
+    if (!titulo || !descripcion || !tipo) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos: titulo, descripcion, tipo, empresaId' },
+        { error: 'Faltan campos requeridos: titulo, descripcion, tipo' },
         { status: 400 }
       );
     }
 
-    // Validate empresa exists
-    const empresa = await db.user.findUnique({
-      where: { id: empresaId },
-    });
+    let finalEmpresaId = empresaId;
 
-    if (!empresa) {
+    // Public consultation: find or create user by email
+    if (!finalEmpresaId && email) {
+      const existingUser = await db.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        finalEmpresaId = existingUser.id;
+      } else {
+        const newUser = await db.user.create({
+          data: {
+            email,
+            nombre: nombreSolicitante || email.split('@')[0],
+            telefono: body.telefono || '',
+            empresa: body.empresa || '',
+            rol: 'EMPRESA_AFILIADA',
+            activo: false,
+            password: '', // Should be set when invited
+          },
+        });
+        finalEmpresaId = newUser.id;
+      }
+    }
+
+    if (!finalEmpresaId) {
       return NextResponse.json(
-        { error: 'La empresa especificada no existe' },
-        { status: 404 }
+        { error: 'Se requiere empresaId o email para procesar la consulta' },
+        { status: 400 }
       );
     }
 
@@ -254,7 +282,7 @@ export async function POST(request: NextRequest) {
         estado: EstadoConsulta.RECIBIDA,
         slaTipo: finalSlaTipo,
         slaFecha,
-        empresaId,
+        empresaId: finalEmpresaId,
         asesorPrincipalId: asesorPrincipalId || null,
         comites: comiteIds ? {
           create: comiteIds.map((comiteId: string) => ({

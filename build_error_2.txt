@@ -1,0 +1,77 @@
+
+> nextjs_tailwind_shadcn_ts@0.2.0 build
+> next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\HP\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\HP\Cascade\MesaTecnica\package-lock.json
+
+▲ Next.js 16.1.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.2s
+  Skipping validation of types
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/28) ...
+  Generating static pages using 7 workers (7/28) 
+  Generating static pages using 7 workers (14/28) 
+  Generating static pages using 7 workers (21/28) 
+✓ Generating static pages using 7 workers (28/28) in 250.8ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api
+├ ƒ /api/agenda
+├ ƒ /api/agenda/[id]
+├ ƒ /api/asesores
+├ ƒ /api/asesores/[id]
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/otp
+├ ƒ /api/auth/register
+├ ƒ /api/candidatos
+├ ƒ /api/candidatos/[id]
+├ ƒ /api/candidatos/[id]/aprobar
+├ ƒ /api/candidatos/[id]/rechazar
+├ ƒ /api/capacitaciones
+├ ƒ /api/comites
+├ ƒ /api/comites/[id]
+├ ƒ /api/comunicados
+├ ƒ /api/configuracion
+├ ƒ /api/consultas
+├ ƒ /api/consultas/[id]
+├ ƒ /api/consultas/[id]/asignar
+├ ƒ /api/consultas/[id]/estado
+├ ƒ /api/dictamenes
+├ ƒ /api/dictamenes/[id]
+├ ƒ /api/documentos
+├ ƒ /api/documentos/[id]
+├ ƒ /api/encuestas
+├ ƒ /api/encuestas/[id]
+├ ƒ /api/estadisticas
+├ ƒ /api/exportar
+├ ƒ /api/kb
+├ ƒ /api/kb/[id]
+├ ƒ /api/mensajes
+├ ƒ /api/mensajes/[id]
+├ ƒ /api/normativas
+├ ƒ /api/notificaciones
+├ ƒ /api/notificaciones/[id]
+├ ƒ /api/plantillas
+├ ƒ /api/plantillas/[id]
+├ ƒ /api/usuarios
+├ ƒ /api/usuarios/[id]
+└ ƒ /api/usuarios/me
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+'cp' is not recognized as an internal or external command,
+operable program or batch file.

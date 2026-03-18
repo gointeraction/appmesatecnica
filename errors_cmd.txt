@@ -1,0 +1,140 @@
+.next/dev/types/validator.ts(63,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/agenda/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/agenda/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ creadoPor: { id: string; email: string; nombre: string; apellido: string | null; imagenUrl: string | null; }; participantes: ({ ...; } & { ...; })[]; } & { ...; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(81,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/asesores/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/asesores/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ consultasRecientes: { id: string; empresa: { id: string; nombre: string; empresa: string | null; }; ... 4 more ...; estado: EstadoConsulta; }[]; ... 13 more ...; comiteId: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(198,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/comites/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/comites/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ [x: string]: ({ id: string; activo: boolean; createdAt: Date; ... 6 more ...; comiteId: string | null; } | { ...; })[] | ({ ...; } | { ...; })[] | { ...; }[] | { ...; }[]; [x: number]: never; [x: symbol]: nev...' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(234,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/consultas/[id]/asignar/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/consultas/[id]/asignar">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ message: string; data: ({ empresa: { id: string; email: string; nombre: string; apellido: string | null; empresa: string | null; }; asesorPrincipal: ({ ...; } & { ...; }) | null; comites: ({ ...; } & { ...; }...' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(306,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/encuestas/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/encuestas/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ user: { id: string; email: string; nombre: string; apellido: string | null; empresa: string | null; }; consulta: { ...; }; } & { ...; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(342,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/kb/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/kb/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ etiquetas: any; vistas: number; autor: { id: string; email: string; nombre: string; apellido: string | null; imagenUrl: string | null; }; ... 9 more ...; autorId: string; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(387,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/notificaciones/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/notificaciones/[id]">'.
+  Types of property 'PUT' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ id: string; createdAt: Date; updatedAt: Date; userId: string; titulo: string; tipo: string | null; estado: EstadoNotificacion; mensaje: string; enlace: string | null; }> | NextResponse<...>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(405,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/plantillas/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/plantillas/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ variables: any; _count: { dictamenes: number; }; id: string; ... 6 more ...; version: number; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(63,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/agenda/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/agenda/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ creadoPor: { id: string; email: string; nombre: string; apellido: string | null; imagenUrl: string | null; }; participantes: ({ ...; } & { ...; })[]; } & { ...; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(81,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/asesores/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/asesores/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ consultasRecientes: { id: string; empresa: { id: string; nombre: string; empresa: string | null; }; ... 4 more ...; estado: EstadoConsulta; }[]; ... 13 more ...; comiteId: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(198,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/comites/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/comites/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ [x: string]: ({ id: string; activo: boolean; createdAt: Date; ... 6 more ...; comiteId: string | null; } | { ...; })[] | ({ ...; } | { ...; })[] | { ...; }[] | { ...; }[]; [x: number]: never; [x: symbol]: nev...' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(234,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/consultas/[id]/asignar/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/consultas/[id]/asignar">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ message: string; data: ({ empresa: { id: string; email: string; nombre: string; apellido: string | null; empresa: string | null; }; asesorPrincipal: ({ ...; } & { ...; }) | null; comites: ({ ...; } & { ...; }...' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(306,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/encuestas/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/encuestas/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ user: { id: string; email: string; nombre: string; apellido: string | null; empresa: string | null; }; consulta: { ...; }; } & { ...; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(342,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/kb/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/kb/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ etiquetas: any; vistas: number; autor: { id: string; email: string; nombre: string; apellido: string | null; imagenUrl: string | null; }; ... 9 more ...; autorId: string; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(387,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/notificaciones/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/notificaciones/[id]">'.
+  Types of property 'PUT' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ id: string; createdAt: Date; updatedAt: Date; userId: string; titulo: string; tipo: string | null; estado: EstadoNotificacion; mensaje: string; enlace: string | null; }> | NextResponse<...>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(405,31): error TS2344: Type 'typeof import("C:/Users/HP/Cascade/MesaTecnica/src/app/api/plantillas/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/plantillas/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: RouteParams) => Promise<NextResponse<{ error: string; }> | NextResponse<{ variables: any; _count: { dictamenes: number; }; id: string; ... 6 more ...; version: number; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type 'RouteParams'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+examples/websocket/frontend.tsx(4,20): error TS2307: Cannot find module 'socket.io-client' or its corresponding type declarations.
+examples/websocket/server.ts(2,24): error TS2307: Cannot find module 'socket.io' or its corresponding type declarations.
+skills/frontend-design/examples/typescript/sample-components.tsx(107,11): error TS2430: Interface 'InputProps' incorrectly extends interface 'InputHTMLAttributes<HTMLInputElement>'.
+  Types of property 'size' are incompatible.
+    Type '"lg" | "md" | "sm" | undefined' is not assignable to type 'number | undefined'.
+      Type 'string' is not assignable to type 'number'.
+skills/frontend-design/examples/typescript/theme-provider.tsx(237,54): error TS2503: Cannot find namespace 'JSX'.
+src/app/api/candidatos/[id]/aprobar/route.ts(37,34): error TS2345: Argument of type 'EstadoCandidato' is not assignable to parameter of type '"PENDIENTE" | "EN_REVISION" | "ENTREVISTA" | "EVALUACION" | "APROBADO"'.
+  Type '"RECHAZADO"' is not assignable to type '"PENDIENTE" | "EN_REVISION" | "ENTREVISTA" | "EVALUACION" | "APROBADO"'.
+src/app/api/candidatos/[id]/rechazar/route.ts(43,36): error TS2345: Argument of type 'EstadoCandidato' is not assignable to parameter of type '"PENDIENTE" | "EN_REVISION" | "ENTREVISTA" | "EVALUACION"'.
+  Type '"APROBADO"' is not assignable to type '"PENDIENTE" | "EN_REVISION" | "ENTREVISTA" | "EVALUACION"'.
+src/app/api/configuracion/route.ts(215,20): error TS2345: Argument of type '{ id: string; createdAt: Date; updatedAt: Date; descripcion: string | null; tipo: string | null; clave: string; valor: string; }' is not assignable to parameter of type 'never'.
+src/app/api/consultas/[id]/estado/route.ts(196,75): error TS2339: Property 'message' does not exist on type '{}'.
+src/app/api/usuarios/[id]/route.ts(73,43): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ rol: string; }'.
+  Type 'string' is not assignable to type '{ rol: string; }'.
+src/app/api/usuarios/[id]/route.ts(160,29): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ rol: string; }'.
+  Type 'string' is not assignable to type '{ rol: string; }'.
+src/app/api/usuarios/[id]/route.ts(364,18): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ rol: string; }'.
+  Type 'string' is not assignable to type '{ rol: string; }'.
+src/app/api/usuarios/route.ts(68,18): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ rol: string; }'.
+  Type 'string' is not assignable to type '{ rol: string; }'.
+src/app/api/usuarios/route.ts(183,18): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ rol: string; }'.
+  Type 'string' is not assignable to type '{ rol: string; }'.
+src/components/mesa-tecnica-app.tsx(3,10): error TS2300: Duplicate identifier 'format'.
+src/components/mesa-tecnica-app.tsx(39,10): error TS2300: Duplicate identifier 'format'.
+src/components/mesa-tecnica-app.tsx(2092,83): error TS2339: Property 'resumen' does not exist on type 'ArticuloKB'.
+src/components/mesa-tecnica-app.tsx(2222,34): error TS2339: Property 'resumen' does not exist on type 'ArticuloKB'.
+src/components/mesa-tecnica-app.tsx(2224,38): error TS2339: Property 'resumen' does not exist on type 'ArticuloKB'.

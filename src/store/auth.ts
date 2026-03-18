@@ -137,7 +137,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       /**
-       * Verifica el estado de autenticación con el servidor
+       * Verifica el estado de autenticación con el servidor.
+       * - 200 + user → sesión válida, actualiza el store
+       * - 401/403     → sesión inválida o expirada, limpia el store
+       * - Error de red → mantiene el estado actual (offline-first)
        */
       checkAuth: async () => {
         set({ isLoading: true })
@@ -148,14 +151,6 @@ export const useAuthStore = create<AuthState>()(
             credentials: 'include'
           })
 
-          // Si el endpoint no existe (404), intentar obtener el usuario actual
-          // de otra manera o mantener el estado del store
-          if (response.status === 404) {
-            // El store persistente ya tiene el usuario, mantenerlo
-            set({ isLoading: false })
-            return
-          }
-
           if (response.ok) {
             const data = await response.json()
             if (data.success && data.user) {
@@ -164,22 +159,24 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 isLoading: false
               })
-            } else {
-              set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false
-              })
+              return
             }
-          } else {
-            // Sesión inválida o expirada
+          }
+
+          // 401, 403 u otra respuesta no-ok → sesión inválida, limpiar estado
+          if (response.status === 401 || response.status === 403) {
             set({
               user: null,
               isAuthenticated: false,
               isLoading: false
             })
+            return
           }
+
+          // Cualquier otro error (500, etc.) → mantener estado actual (puede ser offline)
+          set({ isLoading: false })
         } catch (error) {
+          // Error de red → no limpiar sesión, puede ser offline temporal
           console.error('Error al verificar autenticación:', error)
           set({ isLoading: false })
         }

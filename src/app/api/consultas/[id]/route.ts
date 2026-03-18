@@ -3,15 +3,16 @@ import { db } from '@/lib/db';
 import { EstadoConsulta, TipoConsulta, PrioridadConsulta, SlaTipo } from '@prisma/client';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/consultas/[id] - Get individual consultation
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     const consulta = await db.consulta.findUnique({
       where: { id },
@@ -146,7 +147,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/consultas/[id] - Update consultation
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const body = await request.json();
 
     const {
@@ -267,7 +269,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/consultas/[id] - Delete consultation (soft delete by closing)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     // Check if consultation exists
     const existingConsulta = await db.consulta.findUnique({

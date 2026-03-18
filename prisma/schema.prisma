@@ -112,6 +112,7 @@ model User {
   comunicados           Comunicado[]          @relation("ComunicadosAutor")
   encuestas             EncuestaSatisfaccion[]
   candidatoAsesor       CandidatoAsesor?
+  videosSubidos         VideoComite[]         @relation("VideosAutor")
 
   @@index([email])
   @@index([rol])
@@ -157,6 +158,7 @@ model Comite {
   lider                 Asesor?               @relation("ComiteLider", fields: [liderId], references: [id])
   asesores              Asesor[]              @relation("AsesorComite")
   consultas             ConsultaComite[]
+  videos                VideoComite[]
 
   @@index([activo])
 }
@@ -174,6 +176,7 @@ model Consulta {
   fechaCierre           DateTime?
   empresaId             String
   asesorPrincipalId     String?
+  archivada             Boolean               @default(false)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
 
@@ -517,4 +520,42 @@ model Comunicado {
   @@index([publicado])
   @@index([esUrgente])
   @@index([fechaPublicacion])
+}
+
+// ====================
+// OTP CODES
+// ====================
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+// ====================
+// VIDEOS DE COMITE
+// ====================
+
+model VideoComite {
+  id          String   @id @default(cuid())
+  titulo      String
+  descripcion String?
+  urlYoutube  String   // URL completa o ID del video de YouTube
+  comiteId    String
+  autorId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  comite      Comite   @relation(fields: [comiteId], references: [id], onDelete: Cascade)
+  autor       User     @relation("VideosAutor", fields: [autorId], references: [id])
+
+  @@index([comiteId])
+  @@index([autorId])
 }
